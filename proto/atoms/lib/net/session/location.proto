@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package atoms.lib.net.session;
+
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_package = "co.atoms.lib.net.session.proto";
+option go_package = "go.atoms.co/lib/net/session/pb";
+
+// Location is a location for component observability. System components move around. Can be used for debugging.
+message Location {
+  string region = 1; // region
+  string node = 2;   // pod_name
+}
+
+// Instance identifies a component instance. The instance id must be globally unique and both id and the location
+// must be immutable for the lifetime of the instance. Useful for debugging.
+message Instance {
+  string id = 1;
+  Location location = 2;
+  google.protobuf.Timestamp created = 3;
+  string name = 4;
+}

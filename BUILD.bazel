@@ -1,0 +1,13 @@
+load("@gazelle//:def.bzl", "gazelle")
+
+# gazelle:build_file_name BUILD.bazel
+# gazelle:proto package
+# gazelle:proto_strip_import_prefix /proto
+
+# Override repository name for rules_go
+# gazelle:go_grpc_compilers @rules_go//proto:go_proto,@rules_go//proto:go_grpc_v2
+
+# Exclude directories with generated code
+# gazelle:exclude pb
+
+gazelle(name = "gazelle")
