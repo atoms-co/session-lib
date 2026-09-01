@@ -1,3 +1,4 @@
+load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@rules_go//proto:def.bzl", "go_proto_library")
 
@@ -17,4 +18,12 @@ go_proto_library(
     importpath = "go.atoms.co/lib/net/session/pb",
     proto = ":session_proto",
     visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "session_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":session_proto",
+    ],
 )

@@ -1,4 +1,5 @@
 load("@gazelle//:def.bzl", "gazelle")
+load("@rules_java//toolchains:default_java_toolchain.bzl", "default_java_toolchain")
 
 # gazelle:build_file_name BUILD.bazel
 # gazelle:proto package
@@ -11,3 +12,10 @@ load("@gazelle//:def.bzl", "gazelle")
 # gazelle:exclude pb
 
 gazelle(name = "gazelle")
+
+default_java_toolchain(
+    name = "default_java21_toolchain",
+    java_runtime = "@rules_java//toolchains:remotejdk_21",
+    source_version = "21",
+    target_version = "21",
+)

@@ -1,0 +1,37 @@
+load("@contrib_rules_jvm//java:defs.bzl", "java_junit5_test")
+load("@rules_java//java:defs.bzl", "java_library")
+
+java_library(
+    name = "session",
+    srcs = glob(
+        ["*.java"],
+        exclude = ["*Test.java"],
+    ),
+    deps = [
+        "//proto/atoms/lib/net/session:session_java_proto",
+        "@com_google_protobuf//java/core",
+        "@maven//:com_google_code_findbugs_jsr305",
+        "@maven//:com_google_guava_guava",
+        "@maven//:io_grpc_grpc_api",
+        "@maven//:io_grpc_grpc_stub",
+        "@maven//:org_slf4j_slf4j_api",
+    ],
+)
+
+java_junit5_test(
+    name = "session_test",
+    srcs = glob([
+        "*Test.java",
+        "testing/*.java",
+    ]),
+    test_class = "co.atoms.lib.net.session.SessionTest",
+    deps = [
+        ":session",
+        "//proto/atoms/lib/net/session:session_java_proto",
+        "@maven//:io_grpc_grpc_stub",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+        "@maven//:org_junit_platform_junit_platform_reporting",
+    ],
+)
