@@ -1,6 +1,11 @@
 load("@gazelle//:def.bzl", "gazelle")
 load("@rules_java//toolchains:default_java_toolchain.bzl", "default_java_toolchain")
 
+# gazelle:prefix go.atoms.co/lib/net/session
+
+# Exclude directories with generated code
+# gazelle:exclude go/session/pb
+
 # gazelle:build_file_name BUILD.bazel
 # gazelle:proto package
 # gazelle:proto_strip_import_prefix /proto
@@ -8,8 +13,9 @@ load("@rules_java//toolchains:default_java_toolchain.bzl", "default_java_toolcha
 # Override repository name for rules_go
 # gazelle:go_grpc_compilers @rules_go//proto:go_proto,@rules_go//proto:go_grpc_v2
 
-# Exclude directories with generated code
-# gazelle:exclude pb
+# gazelle:resolve proto atoms/lib/net/location/location.proto @co_atoms_go_lib_net_location//proto/atoms/lib/net/location:location_proto
+# gazelle:resolve proto go atoms/lib/net/location/location.proto @co_atoms_go_lib_net_location//proto/atoms/lib/net/location:location_go_proto
+# gazelle:resolve go go.atoms.co/lib/net/session/go/session/pb //proto/atoms/lib/net/session:session_go_proto
 
 gazelle(name = "gazelle")
 

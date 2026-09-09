@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.atoms.co/lib/net/session"
-	"go.atoms.co/lib/net/session/location"
+	"go.atoms.co/lib/net/location/go/location"
+	"go.atoms.co/lib/net/session/go/session"
 	"go.atoms.co/lib/testing/requirex"
 )
 

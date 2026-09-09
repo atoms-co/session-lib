@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/uuid"
 	"go.atoms.co/lib/encoding/protox"
-	"go.atoms.co/lib/net/session/location"
-	sessionpb "go.atoms.co/lib/net/session/pb"
+	"go.atoms.co/lib/net/location/go/location"
+	sessionpb "go.atoms.co/lib/net/session/go/session/pb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

@@ -3,11 +3,11 @@ syntax = "proto3";
 package atoms.lib.net.session;
 
 import "google/protobuf/timestamp.proto";
-import "atoms/lib/net/session/location.proto";
+import "atoms/lib/net/location/location.proto";
 
 option java_multiple_files = true;
 option java_package = "co.atoms.lib.net.session.proto";
-option go_package = "go.atoms.co/lib/net/session/pb";
+option go_package = "go.atoms.co/lib/net/session/go/session/pb";
 
 // Message is a sub-protocol for bidirectional sessions with a server-determined session lease. The lease
 // is used to delegate other responsibility.
@@ -15,14 +15,14 @@ message Message {
 
   // Establish establishes a new session for a client.
   message Establish {
-    Instance client = 1;
+    atoms.lib.net.location.Instance client = 1;
     string id = 2;
   }
 
   // Established acknowledges an Establish and extends the session to the given lease timestamp. Sent in response to Establish.
   message Established {
     google.protobuf.Timestamp ttl = 1;
-    Instance server = 2;
+    atoms.lib.net.location.Instance server = 2;
   }
 
   // Heartbeat is a request to extend the session lease.

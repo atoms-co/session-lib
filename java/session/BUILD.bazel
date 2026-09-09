@@ -7,12 +7,17 @@ java_library(
         ["*.java"],
         exclude = ["*Test.java"],
     ),
+    visibility = ["//:__subpackages__"],
+    exports = [
+        "//proto/atoms/lib/net/session:session_java_proto",
+        "@com_google_protobuf//java/core",
+    ],
     deps = [
         "//proto/atoms/lib/net/session:session_java_proto",
+        "@co_atoms_go_lib_net_location//proto/atoms/lib/net/location:location_java_proto",
         "@com_google_protobuf//java/core",
         "@maven//:com_google_code_findbugs_jsr305",
         "@maven//:com_google_guava_guava",
-        "@maven//:io_grpc_grpc_api",
         "@maven//:io_grpc_grpc_stub",
         "@maven//:org_slf4j_slf4j_api",
     ],
@@ -28,6 +33,7 @@ java_junit5_test(
     deps = [
         ":session",
         "//proto/atoms/lib/net/session:session_java_proto",
+        "@co_atoms_go_lib_net_location//java/location",
         "@maven//:io_grpc_grpc_stub",
         "@maven//:org_junit_jupiter_junit_jupiter_api",
         "@maven//:org_junit_jupiter_junit_jupiter_engine",

@@ -6,8 +6,8 @@ import static co.atoms.lib.net.session.testing.Asserts.assertElementPresent;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import co.atoms.lib.net.location.proto.Instance;
 import co.atoms.lib.net.session.proto.Message;
-import co.atoms.lib.net.session.proto.Instance;
 import co.atoms.lib.net.session.testing.MutableClock;
 import io.grpc.stub.StreamObserver;
 import java.time.Clock;

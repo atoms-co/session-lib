@@ -1,6 +1,6 @@
 package co.atoms.lib.net.session;
 
-import co.atoms.lib.net.session.proto.Instance;
+import co.atoms.lib.net.location.proto.Instance;
 import co.atoms.lib.net.session.proto.Message;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;

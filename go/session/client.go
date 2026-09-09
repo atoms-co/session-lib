@@ -7,7 +7,7 @@ import (
 	"go.atoms.co/iox"
 	"go.atoms.co/lib/log"
 	"go.atoms.co/lib/metrics"
-	"go.atoms.co/lib/net/session/location"
+	"go.atoms.co/lib/net/location/go/location"
 )
 
 const (

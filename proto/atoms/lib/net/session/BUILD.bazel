@@ -2,24 +2,30 @@ load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@rules_go//proto:def.bzl", "go_proto_library")
 
+# gazelle:java_generate_proto false
+
 proto_library(
     name = "session_proto",
     srcs = [
-        "location.proto",
         "session.proto",
     ],
     strip_import_prefix = "/proto",
     visibility = ["//visibility:public"],
-    deps = ["@com_google_protobuf//:timestamp_proto"],
+    deps = [
+        "@co_atoms_go_lib_net_location//proto/atoms/lib/net/location:location_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
 )
 
 go_proto_library(
     name = "session_go_proto",
-    importpath = "go.atoms.co/lib/net/session/pb",
+    importpath = "go.atoms.co/lib/net/session/go/session/pb",
     proto = ":session_proto",
     visibility = ["//visibility:public"],
+    deps = ["@co_atoms_go_lib_net_location//proto/atoms/lib/net/location:location_go_proto"],
 )
 
+# keep: Java Gazelle otherwise generates an additional java_library wrapper.
 java_proto_library(
     name = "session_java_proto",
     visibility = ["//visibility:public"],
