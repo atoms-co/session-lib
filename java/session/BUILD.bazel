@@ -1,5 +1,8 @@
 load("@contrib_rules_jvm//java:defs.bzl", "java_junit5_test")
 load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm_external//:defs.bzl", "maven_export")
+
+MAVEN_COORDINATES = "co.atoms.lib.net.session:session:$(maven_version)"
 
 java_library(
     name = "session",
@@ -7,20 +10,33 @@ java_library(
         ["*.java"],
         exclude = ["*Test.java"],
     ),
-    visibility = ["//:__subpackages__"],
+    tags = ["maven_coordinates=%s" % MAVEN_COORDINATES],
+    visibility = ["//visibility:public"],
     exports = [
         "//proto/atoms/lib/net/session:session_java_proto",
-        "@com_google_protobuf//java/core",
+        "@maven//:co_atoms_lib_net_location_location",  # keep: published API dependency
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:io_grpc_grpc_stub",  # keep: published API dependency
     ],
     deps = [
         "//proto/atoms/lib/net/session:session_java_proto",
-        "@co_atoms_go_lib_net_location//proto/atoms/lib/net/location:location_java_proto",
-        "@com_google_protobuf//java/core",
+        "@maven//:co_atoms_lib_net_location_location",
         "@maven//:com_google_code_findbugs_jsr305",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:io_grpc_grpc_stub",
         "@maven//:org_slf4j_slf4j_api",
     ],
+)
+
+maven_export(
+    name = "session_export",
+    excluded_workspaces = {
+        "gazelle": "@maven//:co_atoms_lib_net_location_location",
+    },
+    lib_name = "session",
+    maven_coordinates = MAVEN_COORDINATES,
+    pom_template = "pom.xml.tpl",
 )
 
 java_junit5_test(

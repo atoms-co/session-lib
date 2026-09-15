@@ -1,0 +1,157 @@
+name: Publish Maven artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Version tag to publish (for example, v1.0.3)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-maven-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.validate.outputs.tag }}
+      version: ${{ steps.validate.outputs.version }}
+    steps:
+      - name: Validate tag
+        id: validate
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! "${RELEASE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "Tag must match vMAJOR.MINOR.PATCH (for example, v1.0.3)." >&2
+            exit 1
+          fi
+
+          echo "tag=${RELEASE_TAG}" >> "${GITHUB_OUTPUT}"
+          echo "version=${BASH_REMATCH[1]}" >> "${GITHUB_OUTPUT}"
+
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: maven-publishing
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ needs.validate.outputs.tag }}
+          persist-credentials: false
+
+      - name: Build Maven artifact
+        env:
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          bazel build --define=maven_version="${RELEASE_VERSION}" \
+            //java/session:session_export \
+            //java/session:session_export-pom
+
+      - name: Verify tag matches Maven version
+        env:
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          import xml.etree.ElementTree as ET
+
+          pom = ET.parse("bazel-bin/java/session/session_export-pom.xml").getroot()
+          namespace = {"m": "http://maven.apache.org/POM/4.0.0"}
+          published_version = pom.findtext("m:version", namespaces=namespace)
+          release_version = os.environ["RELEASE_VERSION"]
+          if published_version != release_version:
+              raise SystemExit(
+                  f"Tag version {release_version} does not match Maven version {published_version}"
+              )
+          PY
+
+      - name: Stage signed Maven artifact
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          GPG_SIGNING_KEY_PASSWORD: ${{ secrets.GPG_SIGNING_KEY_PASSWORD }}
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          USE_IN_MEMORY_PGP_KEYS: "true"
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${GPG_SIGNING_KEY}" ]]; then
+            echo "Environment secret GPG_SIGNING_KEY is not configured." >&2
+            exit 1
+          fi
+
+          staging_repo="${RUNNER_TEMP}/maven-central-staging"
+          mkdir -p "${staging_repo}"
+          env \
+            MAVEN_REPO="file://${staging_repo}" \
+            PGP_SIGNING_KEY="${GPG_SIGNING_KEY}" \
+            PGP_SIGNING_PWD="${GPG_SIGNING_KEY_PASSWORD}" \
+            bazel run --define=maven_version="${RELEASE_VERSION}" \
+              //java/session:session_export.publish
+          find "${staging_repo}" -type f -name 'maven-metadata.xml*' -delete
+
+      - name: Create Maven Central bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          staging_repo="${RUNNER_TEMP}/maven-central-staging"
+          bundle="${RUNNER_TEMP}/maven-central-bundle.zip"
+          if [[ -z "$(find "${staging_repo}" -type f -print -quit)" ]]; then
+            echo "The staged Maven repository is empty." >&2
+            exit 1
+          fi
+          while IFS= read -r artifact; do
+            if [[ ! -f "${artifact}.asc" ]]; then
+              echo "Missing signature for ${artifact}" >&2
+              exit 1
+            fi
+          done < <(find "${staging_repo}" -type f \( -name '*.jar' -o -name '*.pom' \))
+          (
+            cd "${staging_repo}"
+            zip -q -r "${bundle}" .
+          )
+
+      - name: Upload deployment to Central Portal
+        env:
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${MAVEN_CENTRAL_USERNAME}" || -z "${MAVEN_CENTRAL_PASSWORD}" ]]; then
+            echo "Environment secrets MAVEN_CENTRAL_USERNAME and MAVEN_CENTRAL_PASSWORD are not configured." >&2
+            exit 1
+          fi
+
+          repository_name="${GITHUB_REPOSITORY#*/}"
+          deployment_name="${repository_name}-${RELEASE_VERSION}"
+          bundle="${RUNNER_TEMP}/maven-central-bundle.zip"
+          authorization="$(printf '%s:%s' "${MAVEN_CENTRAL_USERNAME}" "${MAVEN_CENTRAL_PASSWORD}" | base64 -w 0)"
+          deployment_id="$(curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer ${authorization}" \
+            --url-query "name=${deployment_name}" \
+            --url-query "publishingType=USER_MANAGED" \
+            --form "bundle=@${bundle};type=application/octet-stream" \
+            "https://central.sonatype.com/api/v1/publisher/upload")"
+
+          {
+            echo "### Maven Central deployment"
+            echo
+            echo "- Name: ${deployment_name}"
+            echo "- ID: ${deployment_id}"
+          } >> "${GITHUB_STEP_SUMMARY}"
