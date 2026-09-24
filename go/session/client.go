@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	numClientMessages = metrics.NewCounter("atoms.co/session/client_messages", "Number of messages", messageTypeKey)
+	numClientMessages = metrics.NewCounter("co.atoms/session/client_messages", "Number of messages", messageTypeKey)
 )
 
 // Client represents the client-side component of session-scoped keepalive. Can be used agnostic of transport protocol.

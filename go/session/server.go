@@ -21,8 +21,8 @@ const (
 )
 
 var (
-	serverHeartbeatLag = metrics.NewHistogram("atoms.co/session/server_heartbeat_lag", "Heartbeat lag", metrics.JavaBucketOptions)
-	numServerMessages  = metrics.NewCounter("atoms.co/session/server_messages", "Number of messages", messageTypeKey)
+	serverHeartbeatLag = metrics.NewHistogram("co.atoms/session/server_heartbeat_lag", "Heartbeat lag", metrics.JavaBucketOptions)
+	numServerMessages  = metrics.NewCounter("co.atoms/session/server_messages", "Number of messages", messageTypeKey)
 )
 
 // Server represents the server-side component of session-scoped keepalive. Can be used agnostic of transport protocol.
